@@ -1063,19 +1063,15 @@ void bearingOffStage(gammon * boardPtr){
 bool thereIsAPieceInBar(gammon * boardPtr){
     bool result = false;
     if (boardPtr->playerTurn){
-        for(int i = 0; i < 24; i++){
-            for(int j = 0; j < boardPtr->triangles[i].pcCounter && result == false; j++){
-                if(boardPtr->triangles[i].pcs[j].blackPiece == true && boardPtr->triangles[i].pcs[j].inBar == true){
-                    result = true;
-                }
+        for(int i = 0; i < boardPtr->numBar && result == false; i++){
+            if(boardPtr->bar[i].blackPiece == true && boardPtr->bar[i].inBar == true){
+                result = true;
             }
         }
     }else{
-        for(int i = 0; i < 24; i++){
-            for(int j = 0; j < boardPtr->triangles[i].pcCounter && result == false; j++){
-                if(boardPtr->triangles[i].pcs[j].blackPiece == false && boardPtr->triangles[i].pcs[j].inBar == true){
-                    result = true;
-                }
+        for(int i = 0; i < boardPtr->numBar && result == false; i++){
+            if(boardPtr->bar[i].blackPiece == false && boardPtr->bar[i].inBar == true){
+                result = true;
             }
         }
     }
