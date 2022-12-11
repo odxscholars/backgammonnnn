@@ -160,8 +160,10 @@ void printBoard(board *boardPtr)
     printf("\n");
 }
 
-void blotPiece(int triangleIndex , board * boardPtr){
-    if (boardPtr->triangles[triangleIndex].pcCounter == 0) {
+void blotPiece(int triangleIndex, board *boardPtr)
+{
+    if (boardPtr->triangles[triangleIndex].pcCounter == 0)
+    {
         printf("Error: triangle at index %d is empty\n", triangleIndex);
         return;
     }
@@ -171,18 +173,12 @@ void blotPiece(int triangleIndex , board * boardPtr){
     boardPtr->triangles[triangleIndex].pcCounter--;
     boardPtr->numBar++;
 
-
-    //adding the pieceToTheBar;
+    // adding the pieceToTheBar;
     boardPtr->bar[boardPtr->numBar - 1].emptyPiece = false;
     boardPtr->bar[boardPtr->numBar - 1].inBar = true;
     boardPtr->bar[boardPtr->numBar - 1].blackPiece = false ? boardPtr->playerTurn : true;
     boardPtr->bar[boardPtr->numBar - 1].position = -1;
     boardPtr->bar[boardPtr->numBar - 1].bearedOff = false;
-
-
-
-
-
 }
 
 void initializeBoardValues(board *boardPtr)
@@ -426,30 +422,33 @@ void movePiece(int pcPosition, int finalPosition, board *boardPtr)
     }
 }
 
-bool checkIfPieceInTriangleCanBeEaten(int amtToMove, board * boardPtr, int piecePosition){
+bool checkIfPieceInTriangleCanBeEaten(int amtToMove, board *boardPtr, int piecePosition)
+{
     int finalPosition = 0;
-    if (boardPtr->playerTurn == true){
+    if (boardPtr->playerTurn == true)
+    {
         finalPosition = piecePosition - amtToMove;
-        if (boardPtr->triangles[finalPosition].pcCounter == 1 && boardPtr->triangles[finalPosition].pcs[0].blackPiece == false){
+        if (boardPtr->triangles[finalPosition].pcCounter == 1 && boardPtr->triangles[finalPosition].pcs[0].blackPiece == false)
+        {
             return true;
         }
-        else{
+        else
+        {
             return false;
         }
-
-        
     }
-    else{
+    else
+    {
         finalPosition = piecePosition + amtToMove;
-        if (boardPtr->triangles[finalPosition].pcCounter == 1 && boardPtr->triangles[finalPosition].pcs[0].blackPiece == true){
+        if (boardPtr->triangles[finalPosition].pcCounter == 1 && boardPtr->triangles[finalPosition].pcs[0].blackPiece == true)
+        {
             return true;
         }
-        else{
+        else
+        {
             return false;
         }
-        
     }
-
 }
 
 bool movePieceChoice(board *boardPtr, int dice[2])
@@ -519,7 +518,9 @@ bool movePieceChoice(board *boardPtr, int dice[2])
 
                     // checks if triangle is an open point -> which means there are no enemy pieces
                     // also, it checks if the piece belongs to the current player
-                }else if(checkTriangleOpenPoint(dice[0] + dice[1], boardPtr, pcPosition) == false && checkPieceOwner(boardPtr, pcPosition) == true && checkIfPieceInTriangleCanBeEaten(dice[0] + dice[1], boardPtr, pcPosition) == true){
+                }
+                else if (checkTriangleOpenPoint(dice[0] + dice[1], boardPtr, pcPosition) == false && checkPieceOwner(boardPtr, pcPosition) == true && checkIfPieceInTriangleCanBeEaten(dice[0] + dice[1], boardPtr, pcPosition) == true)
+                {
                     t = 1;
                     int finalPos = 0;
                     if (boardPtr->playerTurn == true)
@@ -570,7 +571,7 @@ bool movePieceChoice(board *boardPtr, int dice[2])
             scanf("%d", &pcPosition);
             if (pcPosition >= 0 && pcPosition <= 23)
             { // checking if the position is within the bounds of the board 0-23
-                if (checkTriangleOpenPoint(dice[0] + dice[1], boardPtr, pcPosition) == true && checkPieceOwner(boardPtr, pcPosition) == true)
+                if (checkTriangleOpenPoint(dice[0] * k, boardPtr, pcPosition) == true && checkPieceOwner(boardPtr, pcPosition) == true)
                 {
                     t = 1;
                     int finalPos = 0;
@@ -589,16 +590,47 @@ bool movePieceChoice(board *boardPtr, int dice[2])
                         movePiece(pcPosition, finalPos, boardPtr);
                         boardPtr->playerTurn = !boardPtr->playerTurn;
                     }
+                    else
+                    {
+                        t = -1;
+                        printf("Invalid position, try again\n");
+                    }
 
                     // checks if triangle is an open point -> which means there are no enemy pieces
                     // also, it checks if the piece belongs to the current player
                 }
-                else if (checkTriangleOpenPoint(dice[0] + dice[1], boardPtr, pcPosition) == false && checkPieceOwner(boardPtr, pcPosition) == true)
+                else if (checkTriangleOpenPoint(dice[0] * k, boardPtr, pcPosition) == false && checkPieceOwner(boardPtr, pcPosition) == true && checkIfPieceInTriangleCanBeEaten(dice[0] * k, boardPtr, pcPosition) == true)
+                {
+                    t = 1;
+                    int finalPos = 0;
+                    if (boardPtr->playerTurn == true)
+                    {
+                        printf("in here1\n");
+                        finalPos = pcPosition - (dice[0] * k);
+                    }
+                    else
+                    {
+                        printf("in here2\n");
+                        finalPos = pcPosition + (dice[0] * k);
+                    }
+                    if (finalPos >= 0 && finalPos <= 23)
+                    {
+                        blotPiece(finalPos, boardPtr);
+                        movePiece(pcPosition, finalPos, boardPtr);
+                        boardPtr->playerTurn = !boardPtr->playerTurn;
+                    }
+                    else
+                    {
+                        t = -1;
+                        printf("Invalid position, try again\n");
+                    }
+                }
+                else if (checkTriangleOpenPoint(dice[0] * k, boardPtr, pcPosition) == false && checkPieceOwner(boardPtr, pcPosition) == true)
                 {
                     printf("The piece is yours but the position that you are trying to move to is not an open point. Try again.\n");
                     k--;
                 }
-                else if (checkTriangleOpenPoint(dice[0] + dice[1], boardPtr, pcPosition) == true && checkPieceOwner(boardPtr, pcPosition) == false)
+                else if (checkTriangleOpenPoint(dice[0] * k, boardPtr, pcPosition) == true && checkPieceOwner(boardPtr, pcPosition) == false)
                 {
                     printf("The position is open but either there are no pieces in the position or it does not belong to you. Try again.\n");
                 }
@@ -633,8 +665,10 @@ bool movePieceChoice(board *boardPtr, int dice[2])
             scanf("%d", &pcPosition2);
             if (pcPosition1 >= 0 && pcPosition1 <= 23 && pcPosition2 >= 0 && pcPosition2 <= 23)
             {
+                //checks if pcPosition1 is trying to move to an open point and if the piece belongs to the current player
                 if (checkTriangleOpenPoint(dice[0], boardPtr, pcPosition1) == true && checkPieceOwner(boardPtr, pcPosition1) == true)
                 {
+                    //checks if pcPosition2 is trying to move to an open point and if the piece belongs to the current player
                     if (checkTriangleOpenPoint(dice[1], boardPtr, pcPosition2) == true && checkPieceOwner(boardPtr, pcPosition2) == true)
                     {
                         t = 1;
@@ -662,24 +696,54 @@ bool movePieceChoice(board *boardPtr, int dice[2])
                         {
                             printf("Invalid position, try again\n");
                         }
-                    }
-                    else if (checkTriangleOpenPoint(dice[1], boardPtr, pcPosition2) == false && checkPieceOwner(boardPtr, pcPosition2) == true)
-                    {
-                        printf("Since you cannot move both pieces, we move the piece with the higher positions\n");
+                    } //
+
+                    //pcPosition1 moves to an empty point, pcPosition2 eats a piece                    
+                    else if(checkTriangleOpenPoint(dice[1], boardPtr, pcPosition2) == false && checkPieceOwner(boardPtr, pcPosition2) == true && checkIfPieceInTriangleCanBeEaten(dice[1], boardPtr, pcPosition2)){
                         t = 1;
                         int finalPos1 = 0;
-                        
+                        int finalPos2 = 0;
                         if (boardPtr->playerTurn == true)
                         {
                             printf("in here1\n");
                             finalPos1 = pcPosition1 - dice[0];
-                            
+                            finalPos2 = pcPosition2 - dice[1];
                         }
                         else
                         {
                             printf("in here2\n");
                             finalPos1 = pcPosition1 + dice[0];
-                            
+                            finalPos2 = pcPosition2 + dice[1];
+                        }
+                        if (finalPos1 >= 0 && finalPos1 <= 23 && finalPos2 >= 0 && finalPos2 <= 23)
+                        {
+                            blotPiece(finalPos2, boardPtr);
+                            movePiece(pcPosition1, finalPos1, boardPtr);
+                            movePiece(pcPosition2, finalPos2, boardPtr);
+                            boardPtr->playerTurn = !boardPtr->playerTurn;
+                        }
+                        else
+                        {
+                            printf("Invalid position, try again\n");
+                        }
+
+                    }
+                    //checks if pcPosition2 is trying to move to a closed point but since pcPosition1 is the greater piece, we will move pcPos1 only
+                    else if (checkTriangleOpenPoint(dice[1], boardPtr, pcPosition2) == false && checkPieceOwner(boardPtr, pcPosition2) == true)
+                    {
+                        printf("Since you cannot move both pieces, we move the piece with the higher positions\n");
+                        t = 1;
+                        int finalPos1 = 0;
+
+                        if (boardPtr->playerTurn == true)
+                        {
+                            printf("in here1\n");
+                            finalPos1 = pcPosition1 - dice[0];
+                        }
+                        else
+                        {
+                            printf("in here2\n");
+                            finalPos1 = pcPosition1 + dice[0];
                         }
                         if (finalPos1 >= 0 && finalPos1 <= 23)
                         {
@@ -699,6 +763,99 @@ bool movePieceChoice(board *boardPtr, int dice[2])
                     {
                         printf("The position is not open and you are trying to move a piece that does not belong to you.\n");
                     }
+                }
+                //if pcPosition1 is trying to move to a piece that is not an open point but it can eat a piece
+                else if (checkTriangleOpenPoint(dice[0], boardPtr, pcPosition1) == false && checkPieceOwner(boardPtr, pcPosition1) == true && checkIfPieceInTriangleCanBeEaten(dice[0], boardPtr, pcPosition1) == true)
+                {
+                    //case 1: if pcPosition1 can eat a piece but pcPosition2 can just move to an empty spot
+                    if (checkTriangleOpenPoint(dice[1], boardPtr, pcPosition2) == true && checkPieceOwner(boardPtr, pcPosition2) == true){
+                        t = 1;
+                        int finalPos1 = 0;
+                        int finalPos2 = 0;
+                        if (boardPtr->playerTurn == true)
+                        {
+                            printf("in here1\n");
+                            finalPos1 = pcPosition1 - dice[0];
+                            finalPos2 = pcPosition2 - dice[1];
+                        }
+                        else
+                        {
+                            printf("in here2\n");
+                            finalPos1 = pcPosition1 + dice[0];
+                            finalPos2 = pcPosition2 + dice[1];
+                        }
+                        if (finalPos1 >= 0 && finalPos1 <= 23 && finalPos2 >= 0 && finalPos2 <= 23)
+                        {
+                            blotPiece(finalPos1, boardPtr);
+                            movePiece(pcPosition1, finalPos1, boardPtr);
+                            movePiece(pcPosition2, finalPos2, boardPtr);
+                            boardPtr->playerTurn = !boardPtr->playerTurn;
+                        }
+                        else
+                        {
+                            printf("Invalid position, try again\n");
+                        }
+
+                    }
+                    //case 2: if pcPosition1 can eat a piece and pcPosition2 can ALSO eat another piece
+                    else if (checkTriangleOpenPoint(dice[1], boardPtr, pcPosition2) == false && checkPieceOwner(boardPtr, pcPosition2) == true && checkIfPieceInTriangleCanBeEaten(dice[1], boardPtr, pcPosition2) == true){
+                        t = 1;
+                        int finalPos1 = 0;
+                        int finalPos2 = 0;
+                        if (boardPtr->playerTurn == true)
+                        {
+                            printf("in here1\n");
+                            finalPos1 = pcPosition1 - dice[0];
+                            finalPos2 = pcPosition2 - dice[1];
+                        }
+                        else
+                        {
+                            printf("in here2\n");
+                            finalPos1 = pcPosition1 + dice[0];
+                            finalPos2 = pcPosition2 + dice[1];
+                        }
+                        if (finalPos1 >= 0 && finalPos1 <= 23 && finalPos2 >= 0 && finalPos2 <= 23)
+                        {
+                            blotPiece(finalPos1, boardPtr);
+                            blotPiece(finalPos2, boardPtr);
+                            movePiece(pcPosition1, finalPos1, boardPtr);
+                            movePiece(pcPosition2, finalPos2, boardPtr);
+                            boardPtr->playerTurn = !boardPtr->playerTurn;
+                        }
+                        else
+                        {
+                            printf("Invalid position, try again\n");
+                        }
+
+                    }
+                    //case 3: pcPosition1 can eat a piece but pcPosition2 is trying to move to a position that is not open
+                    else if(checkTriangleOpenPoint(dice[1], boardPtr, pcPosition2) == false && checkPieceOwner(boardPtr, pcPosition2) == true && checkIfPieceInTriangleCanBeEaten(dice[1], boardPtr, pcPosition2) == false){
+                        printf("Since you cannot move both pieces, we move the piece with the higher positions\n");
+                        t = 1;
+                        int finalPos1 = 0;
+
+                        if (boardPtr->playerTurn == true)
+                        {
+                            printf("in here1\n");
+                            finalPos1 = pcPosition1 - dice[0];
+                        }
+                        else
+                        {
+                            printf("in here2\n");
+                            finalPos1 = pcPosition1 + dice[0];
+                        }
+                        if (finalPos1 >= 0 && finalPos1 <= 23)
+                        {
+                            blotPiece(finalPos1, boardPtr);
+                            movePiece(pcPosition1, finalPos1, boardPtr);
+                            boardPtr->playerTurn = !boardPtr->playerTurn;
+                        }
+                        else
+                        {
+                            printf("Invalid position, try again\n");
+                        }
+                    }
+
                 }
                 else if (checkTriangleOpenPoint(dice[0], boardPtr, pcPosition1) == false && checkPieceOwner(boardPtr, pcPosition1) == true)
                 {
