@@ -1,0 +1,560 @@
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+typedef struct piece {
+  int position;
+  bool bearedOff;
+  bool emptyPiece;
+  bool inBar;
+  bool blackPiece;
+} piece;
+
+typedef struct triangle {
+  piece pcs[15];
+  int pcCounter;
+
+} triangle;
+
+typedef struct board {
+  triangle triangles[24];
+  piece bar[15];
+  int numBar;
+  bool playerTurn; //if true, player1; if false, player2
+  int nStake;
+  bool turnStake;
+} board;
+
+int getMax(board *boardPtr, int a, int b) 
+{
+  // assumption: a < b
+  // use case: triangle 12 -> 23
+  // use case 2 : triangle 0 - > triangle 11
+  // it gets the max value of pieces from triangle a to triangle b
+  // triangle 0: 0
+  // triangle 1: 1
+  // triangle 2: 2
+  // triangle 3: 0
+  // triangle 4: 5
+  // triangle 6: 1
+  // triangle 7 : 3
+  // return shoudl be 5
+  // hint 1: declare a max variable and set it to 0
+  // hint 2: iterate through the triangles, compare pcCounter to max
+  // hint 3: if pcCounter > max, set max to pcCounter
+  int max_count = boardPtr->triangles[a].pcCounter;
+
+  for (int i = a; i < b; i++) 
+  {
+    if (boardPtr->triangles[i].pcCounter > max_count)
+      max_count = boardPtr->triangles[i].pcCounter;
+  }
+  return max_count;
+}
+
+void printContents(board *boardPtr) 
+{
+  printf("Player turn: %s\n", boardPtr->playerTurn ? "true" : "false");
+  printf("Number of pieces in bar: %d\n", boardPtr->numBar);
+  printf("Number of points staked: %d\n", boardPtr->nStake);
+  printf("Turn staked: %s\n", boardPtr->turnStake ? "true" : "false");
+
+  printf("Bar: \n");
+  for (int i = 0; i < 15; i++) 
+  {
+     printf("Piece %d: position=%d, bearedOff=%s, emptyPiece=%s, inBar=%s, "
+            "blackPiece=%s\n",
+           i, boardPtr->bar[i].position,
+           boardPtr->bar[i].bearedOff ? "true" : "false",
+           boardPtr->bar[i].emptyPiece ? "true" : "false",
+           boardPtr->bar[i].inBar ? "true" : "false",
+           boardPtr->bar[i].blackPiece ? "true" : "false");
+  }
+
+  printf("triangles: \n");
+  for (int i = 0; i < 24; i++) 
+  {
+    printf("triangle %d: \n", i);
+    printf("Number of pieces: %d\n", boardPtr->triangles[i].pcCounter);
+    for (int j = 0; j < 15; j++) 
+    {
+      printf("Piece %d: posi tion=%d, bearedOff=%s, emptyPiece=%s, inBar=%s, "
+             "blackPiece=%s\n",
+             j, boardPtr->triangles[i].pcs[j].position,
+             boardPtr->triangles[i].pcs[j].bearedOff ? "true" : "false",
+             boardPtr->triangles[i].pcs[j].emptyPiece ? "true" : "false",
+             boardPtr->triangles[i].pcs[j].inBar ? "true" : "false",
+             boardPtr->triangles[i].pcs[j].blackPiece ? "true" : "false");
+    }
+  }
+}
+
+void printBoard(board *boardPtr) 
+{
+  int i, j, k; // top half of board
+  for (int i = 12; i < 24; i++) 
+  {
+    printf("|%d |", i);
+  }
+  printf("\n");
+  for (int i = 0; i < getMax(boardPtr, 12, 23); i++) 
+  {
+    for (int j = 12; j < 24; j++) 
+    {
+      if (i < boardPtr->triangles[j].pcCounter) 
+      {
+        if (boardPtr->triangles[j].pcs[i].blackPiece == true) 
+        {
+          printf("| X |");
+        } 
+        else 
+        {
+
+          printf("| O |");
+        }
+      } 
+      else 
+      {
+        printf("|   |");
+      }
+    }
+    printf("\n");
+  }
+  printf("+----------------------------------------------------------+\n");
+  for(int i = 0; i <  getMax(boardPtr, 0, 11); i++)
+  {
+    for(int j = 11; j >= 0; j--)
+    {
+      if(i < boardPtr->triangles[j].pcCounter)
+      {
+        if(boardPtr->triangles[j].pcs[i].blackPiece == true)
+        {
+          printf("| X |");
+        }
+        else
+        {
+          printf("| O |");
+        }
+      }
+      else
+      {
+        printf("|   |");
+      }
+    }
+    printf("\n");
+  }
+  for(int i = 11; i >= 0; i--)
+  {
+    if (i < 10)
+    {
+      printf("| %d |", i);
+    }else
+    {
+      printf("|%d |", i);
+    }
+    
+  }
+  printf("\n");
+
+}
+
+void initializeBoardValues(board *boardPtr) 
+{
+  // initialize pieces to empty and -1;
+  // set position to -1
+  for (int i = 0; i < 24; i++) 
+  {
+    for (int j = 0; j < 15; j++) 
+    {
+
+      boardPtr->triangles[i].pcs[j].bearedOff = false;
+      boardPtr->triangles[i].pcs[j].position = -1;
+      boardPtr->triangles[i].pcs[j].emptyPiece = true;
+      boardPtr->triangles[i].pcs[j].inBar = false;
+      boardPtr->triangles[i].pcs[j].blackPiece = false;
+    }
+  }
+  // set bearedOff to false
+
+  // set emptyPiece to true
+
+  // set inBar to false
+
+  // set blackPiece to false
+
+  // initialize all pieces in bar to empty and -1
+  for (int i = 0; i < 15; i++) 
+  {
+    boardPtr->bar[i].bearedOff = false;
+    boardPtr->bar[i].emptyPiece = true;
+    boardPtr->bar[i].inBar = true;
+    boardPtr->bar[i].blackPiece = false;
+  }
+  boardPtr->turnStake = false;
+  boardPtr->nStake = 64;
+  boardPtr->playerTurn = true;
+  boardPtr->numBar = 0;
+
+  // set turnStake to false
+  // set nStake = 64
+  // set playerTurn to false
+  // set numBar to 0
+
+  // set all pcCounters to 0
+  for (int i = 0; i < 24; i++) 
+  {
+    boardPtr->triangles[i].pcCounter = 0;
+  }
+
+  int initialPos[2][24] = {{0, 0, 0, 0, 0, 5, 0, 3, 0, 0, 0, 0,
+                            5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2}, // black
+                           {2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5,
+                            0, 0, 0, 0, 3, 0, 5, 0, 0, 0, 0, 0}}; // white
+
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 24; j++) {
+      if (boardPtr->triangles[j].pcCounter > 0) 
+      {
+        continue;
+      } 
+      else 
+      {
+        boardPtr->triangles[j].pcCounter = initialPos[i][j];
+      }
+      for (int k = 0; k < initialPos[i][j]; k++) 
+      {
+        if (i == 0) 
+        {
+          boardPtr->triangles[j].pcs[k].bearedOff = false;
+          boardPtr->triangles[j].pcs[k].blackPiece = true;
+          boardPtr->triangles[j].pcs[k].emptyPiece = false;
+          boardPtr->triangles[j].pcs[k].inBar = false;
+          boardPtr->triangles[j].pcs[k].position = j;
+        } else {
+          boardPtr->triangles[j].pcs[k].bearedOff = false;
+          boardPtr->triangles[j].pcs[k].blackPiece = false;
+          boardPtr->triangles[j].pcs[k].emptyPiece = false;
+          boardPtr->triangles[j].pcs[k].inBar = false;
+          boardPtr->triangles[j].pcs[k].position = j;
+        }
+      }
+    }
+  }
+
+  for (int i = 0; i < 24; i++) 
+  {
+    for (int j = 0; j < 15; j++) 
+    {
+
+      if (boardPtr->triangles[i].pcCounter > 0 && j < boardPtr->triangles[i].pcCounter) {
+
+      } else {
+        j = 15;
+      }
+    }
+  }
+  // set it to the appropriate values - INITIAL POSITIONS
+  // position: 0, qty: 2 pcs, blackPiece = ?
+  // position : 5, qty: 5, blackPiece = ?
+}
+void rolldice(int dice[]) 
+{
+  dice[0] = rand() % 6 + 1;
+  dice[1] = rand() % 6 + 1;
+}
+
+//player turn
+//piece in board
+//piece position
+//dice
+//piece in bar
+//piece beared off
+
+bool checkTriangleOpenPoint(int amtToMove, board * boardPtr, int pcPosition)
+{
+  //if black, final position will be pcPosition - amtToMove
+  //else, final position will be pcPosition + amtToMove
+  //check if final position is open and has no enemy pieces
+  //and if open point has the same pieces  
+  
+  int finalPosition;
+  if(boardPtr->playerTurn == true)
+  {
+    finalPosition = pcPosition - amtToMove;
+  }
+  else
+  {
+    finalPosition = pcPosition + amtToMove;
+  }
+
+  if(boardPtr->triangles[finalPosition].pcCounter == 0)
+  {
+    return true;
+  }
+  else if(boardPtr->triangles[finalPosition].pcCounter > 0 )
+  {
+    if(boardPtr->triangles[finalPosition].pcs[0].blackPiece == boardPtr->playerTurn)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+}
+
+//function checks if selected piece is valid
+bool checkPieceOwner(board * boardPtr, int pcPosition)
+{
+  triangle t = boardPtr->triangles[pcPosition];
+  for(int i = t.pcCounter; i >= 0; i--)
+  {
+    if (boardPtr->triangles[pcPosition].pcs[i].emptyPiece != true){
+      if(boardPtr->playerTurn == true && t.pcs[i].blackPiece == true)
+      {
+        return true;
+      }
+      else if(boardPtr->playerTurn == false && t.pcs[i].blackPiece == false)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
+//function
+//purpose: move a piece to another position AND set the oldPosition to empty
+//parameters: pcPosition, finalPosition, boardPtr
+//return void
+void movePiece(int pcPosition, int finalPosition, board * boardPtr)
+{
+
+  //move pcPosition and remove previous piece
+  if(boardPtr->playerTurn == true)
+  {
+    printf("Moving black piece at %d to %d\n", pcPosition, finalPosition);
+    //getting old values
+    int count = boardPtr->triangles[pcPosition].pcCounter;
+    
+
+    //copying
+    int newCount= boardPtr->triangles[finalPosition].pcCounter;
+    printf("new count is %d\n", newCount);
+    boardPtr->triangles[finalPosition].pcs[newCount].position = finalPosition;
+    boardPtr->triangles[finalPosition].pcs[newCount].emptyPiece = false;
+    boardPtr->triangles[finalPosition].pcs[newCount].inBar = false;
+    boardPtr->triangles[finalPosition].pcs[newCount].blackPiece = true;
+    boardPtr->triangles[finalPosition].pcs[newCount].bearedOff = false;
+    boardPtr->triangles[finalPosition].pcCounter++;
+    printf("new count is %d\n", boardPtr->triangles[finalPosition].pcCounter);
+
+    //deleting old values
+    printf("old count is %d\n", count);
+    boardPtr->triangles[pcPosition].pcs[count-1].position = -1;
+    boardPtr->triangles[pcPosition].pcs[count-1].bearedOff = false;
+    boardPtr->triangles[pcPosition].pcs[count-1].emptyPiece = true;
+    boardPtr->triangles[pcPosition].pcs[count-1].inBar = false;
+    boardPtr->triangles[pcPosition].pcs[count-1].blackPiece = false;
+    boardPtr->triangles[pcPosition].pcCounter--;
+    printf("old count is %d\n", boardPtr->triangles[pcPosition].pcCounter);
+  }
+  else
+  {
+     //getting old values
+    int count = boardPtr->triangles[pcPosition].pcCounter;
+    int Position = boardPtr->triangles[pcPosition].pcs[count-1].position;
+    bool beared = boardPtr->triangles[pcPosition].pcs[count-1].bearedOff;
+    bool empty = boardPtr->triangles[pcPosition].pcs[count-1].emptyPiece;
+    bool bar = boardPtr->triangles[pcPosition].pcs[count-1].inBar;
+    bool isBlackPiece = boardPtr->triangles[pcPosition].pcs[count-1].blackPiece;
+
+    //copying
+    int newCount= boardPtr->triangles[finalPosition].pcCounter;
+    boardPtr->triangles[finalPosition].pcs[newCount].position = finalPosition;
+    boardPtr->triangles[finalPosition].pcs[newCount].bearedOff = false;
+    boardPtr->triangles[finalPosition].pcs[newCount].emptyPiece = false;
+    boardPtr->triangles[finalPosition].pcs[newCount].inBar = false;
+    boardPtr->triangles[finalPosition].pcs[newCount].blackPiece = false;
+    boardPtr->triangles[finalPosition].pcCounter++;
+
+    //deleting old values
+    boardPtr->triangles[pcPosition].pcs[count-1].position = -1;
+    boardPtr->triangles[pcPosition].pcs[count-1].bearedOff = false;
+    boardPtr->triangles[pcPosition].pcs[count-1].emptyPiece = true;
+    boardPtr->triangles[pcPosition].pcs[count-1].inBar = false;
+    boardPtr->triangles[pcPosition].pcs[count-1].blackPiece = false;
+    boardPtr->triangles[pcPosition].pcCounter--;
+  }
+}
+
+bool movePieceChoice(board * boardPtr, int dice[2])
+{
+  int choice;
+
+  do{
+    printf("You rolled a %d and %d\n", dice[0], dice[1]);
+    printf("Move one piece: \n");
+    printf("1.%d positions\n", dice[0] + dice[1]);
+    if (dice[0] == dice[1]){
+      printf("2.%d positions\n", dice[0] * 4);
+    }
+    printf("Move two pieces: \n");
+    printf("3. One piece in %d positions, the other in %d positions\n", dice[0], dice[1]);
+    scanf("%d", &choice);
+    if(choice < 1)
+    {
+      printf("Invalid choice, try again\n");
+    }
+    else if(choice > 3)
+    {
+      printf("Invalid choice, try again\n");
+    }
+    else if (choice == 2 && dice[0] != dice[1])
+    {
+      printf("Invalid choice, try again\n");
+    }
+  }while((choice < 1 || choice > 3) || (choice == 2 && dice[0] != dice[1]));
+
+  if (choice == 1)
+    {
+    int pcPosition;
+    int t = -1;
+    do{
+      printf("Which piece do you want to move %d positions?\n", dice[0] + dice[1]);
+      scanf("%d", &pcPosition);
+      if (pcPosition >= 0 && pcPosition <= 23)
+      { //checking if the position is within the bounds of the board 0-23
+        if (checkTriangleOpenPoint(dice[0]+dice[1], boardPtr, pcPosition) == true && checkPieceOwner(boardPtr, pcPosition) == true)
+        { 
+          t = 1;
+          int finalPos = 0;
+          if (boardPtr->playerTurn == true){
+            printf("in here1\n");
+            finalPos = pcPosition - (dice[0] + dice[1]);
+          }
+          else{
+            printf("in here2\n");
+            finalPos = pcPosition + (dice[0] + dice[1]);
+          }
+          movePiece(pcPosition, finalPos, boardPtr);
+            //checks if triangle is an open point -> which means there are no enemy pieces
+            //also, it checks if the piece belongs to the current player
+        }
+        else if(checkTriangleOpenPoint(dice[0]+dice[1], boardPtr, pcPosition) == false && checkPieceOwner(boardPtr, pcPosition) == true)
+        {
+          printf("The piece is yours but the position that you are trying to move to is not an open point. Try again.\n");
+        }
+        else if(checkTriangleOpenPoint(dice[0]+dice[1], boardPtr, pcPosition) == true && checkPieceOwner(boardPtr, pcPosition) == false)
+        {
+          printf("The position is open but either there are no pieces in the position or it does not belong to you. Try again.\n");
+        }
+        else
+        {
+          printf("The position is not open and you are trying to move a piece that does not belong to you.\n");
+        }
+      }
+    }while(t == -1);
+  }
+}
+
+bool checkIfCanBeEaten(board * boardPtr, int pcPosition)
+{
+  if (boardPtr->triangles[pcPosition].pcCounter == 1)
+  {
+    if(boardPtr->playerTurn != boardPtr->triangles[pcPosition].pcs[0].blackPiece)
+    {
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
+
+void checkSelectedPiece(board * boardPtr, int dice[2])
+{
+  // //checks if selected piece is valid
+  // int choice;
+  // int boardChoice;
+  // do
+  // {
+  //   printf("Select a piece to move: \n");
+  //   printf("1. Piece in bar\n");
+  //   printf("2. Piece in board\n");
+  //   scanf(" %d", &choice);
+  //   if(choice < 1)
+  //   {
+  //     printf("Invalid choice, try again\n");
+  //   }
+  //   else if(choice > 2)
+  //   {
+  //     printf("Invalid choice, try again\n");
+  //   }
+  // }while(choice < 1 || choice > 2);
+  // scanf(" %d", &boardChoice);
+  // if(choice == 1)
+  // {
+  //   //check if piece in bar is valid
+  //   //check if piece in bar can be moved
+  //   //if piece in bar can be moved, move piece
+  //   //if piece in bar can't be moved, return false
+  //   for (int i; i < 23; i++)
+  //   {
+      
+  //   }
+  // }
+  // else if(choice == 2)
+  // {
+  //   //check if piece in board is valid
+  //   //check if piece in board can be moved
+  //   //if piece in board can be moved, move piece
+  //   //if piece in board can't be moved, return false
+  //   if()
+  // }
+  //ask for piece position 0-23
+  int pcPosition;
+  scanf("%d", &pcPosition);
+  if (pcPosition < 0 || pcPosition > 23)
+  {
+    printf("Invalid choice, out of bounds. Try again.\n");
+  }
+  else
+  {
+    
+
+  }
+  // check if piece belongs to player -> we loop through the triangle pcs member from top to bottom
+      //if board->playerTurn = true, we check if piece in triangle is a blackPiece
+      //else we check if piece in triangle is not a blackPiece
+
+}
+
+int main() 
+{
+  // srand(time(NULL));
+  int dice[2];
+  board gameBoard;
+  bool gameEnd = false;
+
+  do
+  {
+    initializeBoardValues(&gameBoard);
+    rolldice(dice);
+    printContents(&gameBoard);
+    printBoard(&gameBoard);
+    
+    movePieceChoice(&gameBoard, dice);
+    
+  } while (gameEnd == false);
+}
