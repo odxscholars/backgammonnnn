@@ -165,20 +165,22 @@ void blotPiece(int triangleIndex, board *boardPtr)
     if (boardPtr->triangles[triangleIndex].pcCounter == 0)
     {
         printf("Error: triangle at index %d is empty\n", triangleIndex);
-        return;
+        
+    }else{
+        // remove the last piece in the triangle and increment the bar counter
+        boardPtr->triangles[triangleIndex].pcs[boardPtr->triangles[triangleIndex].pcCounter - 1].emptyPiece = true;
+        boardPtr->triangles[triangleIndex].pcCounter--;
+        boardPtr->numBar++;
+
+        // adding the pieceToTheBar;
+        boardPtr->bar[boardPtr->numBar - 1].emptyPiece = false;
+        boardPtr->bar[boardPtr->numBar - 1].inBar = true;
+        boardPtr->bar[boardPtr->numBar - 1].blackPiece = false ? boardPtr->playerTurn : true;
+        boardPtr->bar[boardPtr->numBar - 1].position = -1;
+        boardPtr->bar[boardPtr->numBar - 1].bearedOff = false;
     }
 
-    // remove the last piece in the triangle and increment the bar counter
-    boardPtr->triangles[triangleIndex].pcs[boardPtr->triangles[triangleIndex].pcCounter - 1].emptyPiece = true;
-    boardPtr->triangles[triangleIndex].pcCounter--;
-    boardPtr->numBar++;
-
-    // adding the pieceToTheBar;
-    boardPtr->bar[boardPtr->numBar - 1].emptyPiece = false;
-    boardPtr->bar[boardPtr->numBar - 1].inBar = true;
-    boardPtr->bar[boardPtr->numBar - 1].blackPiece = false ? boardPtr->playerTurn : true;
-    boardPtr->bar[boardPtr->numBar - 1].position = -1;
-    boardPtr->bar[boardPtr->numBar - 1].bearedOff = false;
+    
 }
 
 void initializeBoardValues(board *boardPtr)
@@ -337,26 +339,28 @@ bool checkTriangleOpenPoint(int amtToMove, board *boardPtr, int pcPosition)
 // function checks if selected piece is valid
 bool checkPieceOwner(board *boardPtr, int pcPosition)
 {
+    bool result = false;
     triangle t = boardPtr->triangles[pcPosition];
-    for (int i = t.pcCounter; i >= 0; i--)
+    for (int i = t.pcCounter; i >= 0 && result == false; i--)
     {
         if (boardPtr->triangles[pcPosition].pcs[i].emptyPiece != true)
         {
             if (boardPtr->playerTurn == true && t.pcs[i].blackPiece == true)
             {
-                return true;
+                result = true;
+
             }
             else if (boardPtr->playerTurn == false && t.pcs[i].blackPiece == false)
             {
-                return true;
+                result = true;
             }
             else
             {
-                return false;
+                result = true;
             }
         }
     }
-    return false;
+    return result;
 }
 
 // function
@@ -1052,24 +1056,25 @@ void bearingOffStage(board * boardPtr){
 
 
 bool thereIsAPieceInBar(board * boardPtr){
+    bool result = false;
     if (boardPtr->playerTurn){
         for(int i = 0; i < 24; i++){
-            for(int j = 0; j < boardPtr->triangles[i].pcCounter; j++){
+            for(int j = 0; j < boardPtr->triangles[i].pcCounter && result == false; j++){
                 if(boardPtr->triangles[i].pcs[j].blackPiece == true && boardPtr->triangles[i].pcs[j].inBar == true){
-                    return true;
+                    result = true;
                 }
             }
         }
     }else{
         for(int i = 0; i < 24; i++){
-            for(int j = 0; j < boardPtr->triangles[i].pcCounter; j++){
+            for(int j = 0; j < boardPtr->triangles[i].pcCounter && result == false; j++){
                 if(boardPtr->triangles[i].pcs[j].blackPiece == false && boardPtr->triangles[i].pcs[j].inBar == true){
-                    return true;
+                    result = true;
                 }
             }
         }
     }
-    return false;
+    return result;
 }
 void putBackInBoardFromBar(board * boardPtr){
     if (boardPtr->playerTurn){
