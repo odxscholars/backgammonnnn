@@ -1077,6 +1077,28 @@ bool thereIsAPieceInBar(gammon * boardPtr){
     }
     return result;
 }
+
+int getIndexOfPieceInBar(gammon * boardPtr){
+    bool continueLoop = true;
+    int result = -1;
+    if (boardPtr->playerTurn){
+        for(int i = boardPtr->numBar; i <= 0 && continueLoop; i--){
+            if(boardPtr->bar[i].blackPiece == true && boardPtr->bar[i].inBar == true){
+                result = i;
+                continueLoop = false;
+            }
+        }
+    }else{
+        for(int i = boardPtr->numBar; i <= 0 && continueLoop; i--){
+            if(boardPtr->bar[i].blackPiece == false && boardPtr->bar[i].inBar == true){
+                result = i;
+                continueLoop = false;
+            }
+        }
+    }
+    return result;
+
+}
 void putBackInBoardFromBar(gammon * boardPtr){
     if (boardPtr->playerTurn){
         printf("You have a piece in the bar. You must put it back in the board.\n");
@@ -1093,12 +1115,17 @@ void putBackInBoardFromBar(gammon * boardPtr){
                 boardPtr->triangles[24 - tempDice[0]].pcs[0].inBar = false;
                 boardPtr->triangles[24 - tempDice[0]].pcs[0].bearedOff = false;
                 boardPtr->triangles[24 - tempDice[0]].pcCounter++;
+                boardPtr->bar[getIndexOfPieceInBar(boardPtr)].inBar = false;
+                boardPtr->numBar--;
+                
             }else{
                 if (boardPtr->triangles[24 - tempDice[0]].pcs[0].blackPiece == true){
                     boardPtr->triangles[24 - tempDice[0]].pcs[boardPtr->triangles[24 - tempDice[0]].pcCounter].blackPiece = true;
                     boardPtr->triangles[24 - tempDice[0]].pcs[boardPtr->triangles[24 - tempDice[0]].pcCounter].inBar = false;
                     boardPtr->triangles[24 - tempDice[0]].pcs[boardPtr->triangles[24 - tempDice[0]].pcCounter].bearedOff = false;
                     boardPtr->triangles[24 - tempDice[0]].pcCounter++;
+                    boardPtr->bar[getIndexOfPieceInBar(boardPtr)].inBar = false;
+                    boardPtr->numBar--;
                 }else{
                     printf("You can't put a piece in a triangle that has a white piece.\n");
                 }
@@ -1123,12 +1150,17 @@ void putBackInBoardFromBar(gammon * boardPtr){
                 boardPtr->triangles[tempDice[0]].pcs[0].inBar = false;
                 boardPtr->triangles[tempDice[0]].pcs[0].bearedOff = false;
                 boardPtr->triangles[tempDice[0]].pcCounter++;
+                boardPtr->bar[getIndexOfPieceInBar(boardPtr)].inBar = false;
+                boardPtr->numBar--;
+                
             }else{
                 if (boardPtr->triangles[tempDice[0]].pcs[0].blackPiece == true){
                     boardPtr->triangles[tempDice[0]].pcs[boardPtr->triangles[tempDice[0]].pcCounter].blackPiece = false;
                     boardPtr->triangles[tempDice[0]].pcs[boardPtr->triangles[tempDice[0]].pcCounter].inBar = false;
                     boardPtr->triangles[tempDice[0]].pcs[boardPtr->triangles[tempDice[0]].pcCounter].bearedOff = false;
                     boardPtr->triangles[tempDice[0]].pcCounter++;
+                    boardPtr->bar[getIndexOfPieceInBar(boardPtr)].inBar = false;
+                    boardPtr->numBar--;
                 }else{
                     printf("You can't put a piece in a triangle that has a black piece.\n");
                 }
