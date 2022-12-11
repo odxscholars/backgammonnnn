@@ -1,3 +1,18 @@
+/*
+Description: Backgammon! The game is played by two players each, with fifteen checkers of his own color. Each player also
+has their own pair of dice and dice cup. A doubling cube with the numbers 2, 4, 8, 16, 32, 64 is used for tracking the stakes of
+the round. The board consists of 24 long triangles called points or pips. The triangles alternate in color and are divided into four
+quadrants of six triangles each. The four quadrants are the player’s home board and outer board, and the opponent’s home board
+and outer board. The home boards and outer boards are separated by a divider down the middle referred to as the bar.
+Programmed by: Derek Christian O. Odeste S11
+                Roj Aleck Friginal S11
+Last modified: 11/12/2022
+Version: 1.0
+[Acknowledgements: <https://stackoverflow.com/questions/2595392/what-does-the-question-mark-and-the-colon-ternary-operator-mean-in-objectiv
+                    https://www.tutorialspoint.com/c_standard_library/time_h.htm
+                    https://cplusplus.com/reference/cstdlib/srand/> ]
+*/
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,33 +33,17 @@ typedef struct triangle
 
 } triangle;
 
-typedef struct board
+typedef struct gammon
 {
     triangle triangles[24];
     piece bar[15];
     int numBar;
     bool playerTurn; // if true, player1; if false, player2
-    int nStake;
-    bool turnStake;
-} board;
+    
+} gammon;
 
-int getMax(board *boardPtr, int a, int b)
+int getMax(gammon *boardPtr, int a, int b)
 {
-    // assumption: a < b
-    // use case: triangle 12 -> 23
-    // use case 2 : triangle 0 - > triangle 11
-    // it gets the max value of pieces from triangle a to triangle b
-    // triangle 0: 0
-    // triangle 1: 1
-    // triangle 2: 2
-    // triangle 3: 0
-    // triangle 4: 5
-    // triangle 6: 1
-    // triangle 7 : 3
-    // return shoudl be 5
-    // hint 1: declare a max variable and set it to 0
-    // hint 2: iterate through the triangles, compare pcCounter to max
-    // hint 3: if pcCounter > max, set max to pcCounter
     int max_count = boardPtr->triangles[a].pcCounter;
 
     for (int i = a; i < b; i++)
@@ -55,12 +54,11 @@ int getMax(board *boardPtr, int a, int b)
     return max_count;
 }
 
-void printContents(board *boardPtr)
+void printContents(gammon *boardPtr)
 {
     printf("Player turn: %s\n", boardPtr->playerTurn ? "true" : "false");
     printf("Number of pieces in bar: %d\n", boardPtr->numBar);
-    printf("Number of points staked: %d\n", boardPtr->nStake);
-    printf("Turn staked: %s\n", boardPtr->turnStake ? "true" : "false");
+    
 
     printf("Bar: \n");
     for (int i = 0; i < 15; i++)
@@ -92,7 +90,7 @@ void printContents(board *boardPtr)
     }
 }
 
-void printBoard(board *boardPtr)
+void printBoard(gammon *boardPtr)
 {
 
     for (int i = 12; i < 24; i++)
@@ -160,7 +158,7 @@ void printBoard(board *boardPtr)
     printf("\n");
 }
 
-void blotPiece(int triangleIndex, board *boardPtr)
+void blotPiece(int triangleIndex, gammon *boardPtr)
 {
     if (boardPtr->triangles[triangleIndex].pcCounter == 0)
     {
@@ -183,7 +181,7 @@ void blotPiece(int triangleIndex, board *boardPtr)
     
 }
 
-void initializeBoardValues(board *boardPtr)
+void initializeBoardValues(gammon *boardPtr)
 {
     // initialize pieces to empty and -1;
     // set position to -1
@@ -215,9 +213,9 @@ void initializeBoardValues(board *boardPtr)
         boardPtr->bar[i].inBar = true;
         boardPtr->bar[i].blackPiece = false;
     }
-    boardPtr->turnStake = false;
-    boardPtr->nStake = 64;
-    boardPtr->playerTurn = true;
+    
+    
+    
     boardPtr->numBar = 0;
 
     // set turnStake to false
@@ -295,13 +293,13 @@ void rolldice(int dice[])
 }
 
 // player turn
-// piece in board
+// piece in gammon
 // piece position
 // dice
 // piece in bar
 // piece beared off
 
-bool checkTriangleOpenPoint(int amtToMove, board *boardPtr, int pcPosition)
+bool checkTriangleOpenPoint(int amtToMove, gammon *boardPtr, int pcPosition)
 {
     // if black, final position will be pcPosition - amtToMove
     // else, final position will be pcPosition + amtToMove
@@ -337,7 +335,7 @@ bool checkTriangleOpenPoint(int amtToMove, board *boardPtr, int pcPosition)
 }
 
 // function checks if selected piece is valid
-bool checkPieceOwner(board *boardPtr, int pcPosition)
+bool checkPieceOwner(gammon *boardPtr, int pcPosition)
 {
     bool result = false;
     triangle t = boardPtr->triangles[pcPosition];
@@ -367,7 +365,7 @@ bool checkPieceOwner(board *boardPtr, int pcPosition)
 // purpose: move a piece to another position AND set the oldPosition to empty
 // parameters: pcPosition, finalPosition, boardPtr
 // return void
-void movePiece(int pcPosition, int finalPosition, board *boardPtr)
+void movePiece(int pcPosition, int finalPosition, gammon *boardPtr)
 {
     printf("mem of boardPtr is %p\n", boardPtr);
     // move pcPosition and remove previous piece
@@ -422,7 +420,7 @@ void movePiece(int pcPosition, int finalPosition, board *boardPtr)
     }
 }
 
-bool checkIfPieceInTriangleCanBeEaten(int amtToMove, board *boardPtr, int piecePosition)
+bool checkIfPieceInTriangleCanBeEaten(int amtToMove, gammon *boardPtr, int piecePosition)
 {
     int finalPosition = 0;
     if (boardPtr->playerTurn == true)
@@ -451,12 +449,19 @@ bool checkIfPieceInTriangleCanBeEaten(int amtToMove, board *boardPtr, int pieceP
     }
 }
 
-void movePieceChoice(board *boardPtr, int dice[2])
+void movePieceChoice(gammon *boardPtr, int dice[2])
 {
     int choice;
 
     do
     {
+        if(boardPtr->playerTurn == true)
+        {
+            printf("It is Player 1's turn\n");
+        }else{
+            printf("It is Player 2's turn\n");
+        }
+        
         printf("You rolled a %d and %d\n", dice[0], dice[1]);
         printf("Move one piece: \n");
         printf("1.%d positions\n", dice[0] + dice[1]);
@@ -876,7 +881,7 @@ void movePieceChoice(board *boardPtr, int dice[2])
     
 }
 
-bool checkIfCanBeEaten(board *boardPtr, int pcPosition)
+bool checkIfCanBeEaten(gammon *boardPtr, int pcPosition)
 {
     if (boardPtr->triangles[pcPosition].pcCounter == 1)
     {
@@ -895,7 +900,7 @@ bool checkIfCanBeEaten(board *boardPtr, int pcPosition)
     }
 }
 
-bool checkIfPlayerCanStartBearingOff(board * boardPtr){
+bool checkIfPlayerCanStartBearingOff(gammon * boardPtr){
     int countOfPiecesInQuadrant = 0;
     int countPiecesOfPlayer = 0;
 
@@ -951,7 +956,7 @@ bool checkIfPlayerCanStartBearingOff(board * boardPtr){
 
 }
 
-void bearingOffStage(board * boardPtr){
+void bearingOffStage(gammon * boardPtr){
     if (boardPtr->playerTurn){
         printf("You are now in the bearing off stage.\n");
         printf("Roll dice to start bearing off? \n");
@@ -1055,7 +1060,7 @@ void bearingOffStage(board * boardPtr){
 }
 
 
-bool thereIsAPieceInBar(board * boardPtr){
+bool thereIsAPieceInBar(gammon * boardPtr){
     bool result = false;
     if (boardPtr->playerTurn){
         for(int i = 0; i < 24; i++){
@@ -1076,7 +1081,7 @@ bool thereIsAPieceInBar(board * boardPtr){
     }
     return result;
 }
-void putBackInBoardFromBar(board * boardPtr){
+void putBackInBoardFromBar(gammon * boardPtr){
     if (boardPtr->playerTurn){
         printf("You have a piece in the bar. You must put it back in the board.\n");
         printf("Roll dice?");
@@ -1142,7 +1147,7 @@ void putBackInBoardFromBar(board * boardPtr){
 
 }   
 
-void checkGameEndCondition(bool * gameEnd, board * boardPtr){
+bool checkGameEndCondition(bool * gameEnd, gammon * boardPtr){
     int blackPieces = 0;
     int whitePieces = 0;
     for(int i = 0; i < 24; i++){
@@ -1168,22 +1173,99 @@ void checkGameEndCondition(bool * gameEnd, board * boardPtr){
     if (blackPieces == 0 || whitePieces == 0){
         *gameEnd = true;
     }
+    if (blackPieces == 0){
+        
+        return true;
+    }else if (whitePieces == 0){
+       
+        return true;
+    }
+    return false;
+}
 
+
+void startRollDice(gammon * boardPtr, bool * ownerOfStake){
+    int dice[2];
+    do{
+        printf("Roll dice?");
+        printf("1. Yes\n");
+        
+        int choice = 0;
+        scanf("%d", &choice);
+        if(choice == 1){
+            rolldice(dice);
+            if (dice[0] > dice[1]){
+                printf("Player 1 won the roll.\n");
+                boardPtr->playerTurn = true;
+                *ownerOfStake = true;
+            }else if(dice[0] < dice[1]){
+                printf("Player 2 won the roll.\n");
+                *ownerOfStake = false;
+                boardPtr->playerTurn = false;
+            }else{
+                printf("You rolled the same number. Roll again.\n");
+            }
+        }
+        
+    }while(dice[0] == dice[1]);
+
+    
+
+}
+
+void askForStake(int * stake, bool * ownerOfStake, gammon * gameBoard){
+    if (gameBoard->playerTurn == *ownerOfStake){
+        printf("Do you want to double the stake?\n");
+        printf("1. Yes\n");
+        printf("2. No\n");
+        int choice = 0;
+        scanf("%d", &choice);
+        if (choice == 1){
+            *stake = *stake * 2;
+            *ownerOfStake = !*ownerOfStake;
+        }
+    }
+    
+}
+
+int countPlayerPiecesInBoard(bool player, gammon * gameBoard){
+    int counter = 0;
+    for(int i = 0; i < 24; i++){
+        for(int j = 0; j < gameBoard->triangles[i].pcCounter; j++){
+            if(gameBoard->triangles[i].pcs[j].blackPiece == player && gameBoard->triangles[i].pcs[j].inBar == false && gameBoard->triangles[i].pcs[j].bearedOff == false){
+                counter++;
+            }
+        }
+    }
+    return counter;
+
+}
+
+int countPlayerPiecesInBar(bool player, gammon * gameBoard){
+    int counter = 0;
+    for(int i = 0; i < gameBoard->numBar; i++){
+        if(gameBoard->bar[i].blackPiece == player){
+            counter++;
+        }
+    }
+    return counter;
 }
 
 int main()
 {
-    // srand(time(NULL));
+    srand(time(NULL));
     int dice[2];
-    board gameBoard;
+    gammon gameBoard;
     bool gameEnd = false;
-    printf("mem of boardPtr %p\n", &gameBoard);
+    int stake = 64;
+    bool ownerOfStake = true;
     initializeBoardValues(&gameBoard);
+    startRollDice(&gameBoard, &ownerOfStake);
     do
     {
-
+        askForStake(&stake, &ownerOfStake, &gameBoard);
         rolldice(dice);
-        printContents(&gameBoard);
+        // printContents(&gameBoard);
         printBoard(&gameBoard);
         checkGameEndCondition(&gameEnd, &gameBoard);
         if (checkIfPlayerCanStartBearingOff(&gameBoard) == true){
@@ -1196,4 +1278,33 @@ int main()
         }
 
     } while (gameEnd == false);
+    if (checkGameEndCondition(&gameEnd, &gameBoard) == true){
+        printf("Black wins\n");
+        printf("White loses\n");
+        if(countPlayerPiecesInBoard(false, &gameBoard) < 15 && countPlayerPiecesInBoard(false, &gameBoard) == 0){
+            printf("Player wins %d\n", stake);
+        }else if(countPlayerPiecesInBoard(false, &gameBoard) == 15){
+            printf("Player wins %d\n", stake * 2);
+        }else if (countPlayerPiecesInBar(false, &gameBoard) > 0){
+            printf("Player wins %d\n", stake * 3);
+        }else{
+            printf("Player wins %d\n", stake);
+        }
+
+        
+
+    }else{
+        printf("White wins\n");
+        printf("Black loses\n");
+        if(countPlayerPiecesInBoard(true, &gameBoard) < 15 && countPlayerPiecesInBoard(true, &gameBoard) == 0){
+            printf("Player wins %d\n", stake);
+        }else if(countPlayerPiecesInBoard(true, &gameBoard) == 15){
+            printf("Player wins %d\n", stake * 2);
+        }else if (countPlayerPiecesInBar(true, &gameBoard) > 0){
+            printf("Player wins %d\n", stake * 3);
+        }else{
+            printf("Player wins %d\n", stake);
+        }
+    }
+    
 }
